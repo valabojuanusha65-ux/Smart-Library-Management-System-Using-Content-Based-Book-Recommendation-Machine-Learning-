@@ -1,191 +1,38 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import os
-app = Flask(__name__)
-app.secret_key = 'library_secret_key_2024'
+# Smart Library Management System Using Content-Based Book Recommendation
 
-# ── Load & prepare data ──────────────────────────────────────────────────────
-df = pd.read_csv('library_dataset_random.csv')
-df['combined'] = df['Category'] + ' ' + df['Author'] + ' ' + df['Title']
+## Overview
+This project is a Smart Library Management System developed using Flask and Machine Learning. It helps users manage library books and provides personalized book recommendations using content-based filtering.
 
-tfidf = TfidfVectorizer(stop_words='english')
-tfidf_matrix = tfidf.fit_transform(df['combined'])
-cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+## Technologies Used
+- Python
+- Flask
+- Pandas
+- Scikit-learn
+- HTML
+- CSS
 
-# ── Demo users ───────────────────────────────────────────────────────────────
-USERS = {
-    'Admin':   {'password': 'admin123',   'role': 'admin',   'name': 'Admin User'},
-    'B23AI114': {'password': 'anusha', 'role': 'student', 'name': 'Anusha Valaboju'},
-    'B23AI057': {'password': 'shreeshanth', 'role': 'student', 'name': 'Shreeshanth Reddy'},
-    'B23AI113': {'password': 'vasantha', 'role': 'student', 'name': 'Vasantha'},
-}
+## Features
+- User Login System
+- Book Search and Filtering
+- Borrow and Return Books
+- Admin Dashboard
+- Content-Based Book Recommendations
+- Library Inventory Management
 
-# In-memory borrow records  {username: [Book_ID, ...]}
-borrow_records: dict[str, list] = {}
+## Dataset
+The system uses a library dataset containing book details such as title, author, category, and availability status.
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
-def get_recommendations(book_id, n=5):
-    if book_id not in df['Book_ID'].values:
-        return []
-    idx = df[df['Book_ID'] == book_id].index[0]
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:n+1]
-    rec_indices = [i[0] for i in sim_scores]
-    return df.iloc[rec_indices][['Book_ID','Title','Author','Category','Status']].to_dict('records')
+## How to Run
+1. Install dependencies:
+   pip install flask pandas scikit-learn
 
-def get_user_recommendations(username, n=6):
-    borrowed = borrow_records.get(username, [])
-    if not borrowed:
-        # Return popular/random books when no history
-        return df[df['Status'] == 'Present'].head(n)[['Book_ID','Title','Author','Category','Status']].to_dict('records')
-    recs = []
-    seen = set(borrowed)
-    for bid in borrowed[-3:]:  # use last 3 borrowed
-        for r in get_recommendations(bid, n=4):
-            if r['Book_ID'] not in seen:
-                seen.add(r['Book_ID'])
-                recs.append(r)
-    return recs[:n]
+2. Run the application:
+   python app.py
 
-# ── Routes ───────────────────────────────────────────────────────────────────
-@app.route('/')
-def home():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    return redirect(url_for('dashboard'))
+3. Open:
+   http://127.0.0.1:5001
 
-@app.route('/login', methods=['GET','POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username'].strip()
-        password = request.form['password'].strip()
-        if username in USERS and USERS[username]['password'] == password:
-            session['user'] = username
-            session['role'] = USERS[username]['role']
-            session['name'] = USERS[username]['name']
-            return redirect(url_for('dashboard'))
-        flash('Invalid username or password.', 'error')
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
-@app.route('/dashboard')
-def dashboard():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    total = len(df)
-    present = len(df[df['Status']=='Present'])
-    checked = len(df[df['Status']=='Checked Out'])
-    missing = len(df[df['Status']=='Missing'])
-    categories = df['Category'].value_counts().to_dict()
-    recs = get_user_recommendations(session['user'])
-    borrowed = borrow_records.get(session['user'], [])
-    return render_template('dashboard.html',
-        total=total, present=present, checked=checked, missing=missing,
-        categories=categories, recommendations=recs,
-        borrowed_count=len(borrowed))
-
-@app.route('/books')
-def books():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    search = request.args.get('q', '').strip().lower()
-    cat    = request.args.get('category', '').strip()
-    status = request.args.get('status', '').strip()
-    data   = df.copy()
-    if search:
-        data = data[data['Title'].str.lower().str.contains(search) |
-                    data['Author'].str.lower().str.contains(search)]
-    if cat:
-        data = data[data['Category'] == cat]
-    if status:
-        data = data[data['Status'] == status]
-    books_list = data[['Book_ID','Title','Author','Category','Cabinet','Rack','Row','Status']].to_dict('records')
-    categories = sorted(df['Category'].unique())
-    statuses   = sorted(df['Status'].unique())
-    borrowed   = borrow_records.get(session['user'], [])
-    return render_template('books.html', books=books_list,
-        categories=categories, statuses=statuses,
-        search=search, sel_cat=cat, sel_status=status, borrowed=borrowed)
-
-@app.route('/book/<book_id>')
-def book_detail(book_id):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    row = df[df['Book_ID']==book_id]
-    if row.empty:
-        flash('Book not found.', 'error')
-        return redirect(url_for('books'))
-    book = row.iloc[0].to_dict()
-    recs = get_recommendations(book_id)
-    borrowed = borrow_records.get(session['user'], [])
-    return render_template('book_detail.html', book=book, recommendations=recs, borrowed=borrowed)
-
-@app.route('/borrow/<book_id>', methods=['POST'])
-def borrow(book_id):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    user = session['user']
-    row = df[df['Book_ID']==book_id]
-    if row.empty or row.iloc[0]['Status'] != 'Present':
-        flash('Book is not available for borrowing.', 'error')
-        return redirect(url_for('book_detail', book_id=book_id))
-    df.loc[df['Book_ID']==book_id, 'Status'] = 'Checked Out'
-    borrow_records.setdefault(user, [])
-    if book_id not in borrow_records[user]:
-        borrow_records[user].append(book_id)
-    flash(f'You have successfully borrowed "{row.iloc[0]["Title"]}"!', 'success')
-    return redirect(url_for('book_detail', book_id=book_id))
-
-@app.route('/return/<book_id>', methods=['POST'])
-def return_book(book_id):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    user = session['user']
-    df.loc[df['Book_ID']==book_id, 'Status'] = 'Present'
-    if user in borrow_records and book_id in borrow_records[user]:
-        borrow_records[user].remove(book_id)
-    row = df[df['Book_ID']==book_id]
-    flash(f'You have returned "{row.iloc[0]["Title"]}". Thank you!', 'success')
-    return redirect(url_for('my_books'))
-
-@app.route('/my-books')
-def my_books():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    user = session['user']
-    borrowed_ids = borrow_records.get(user, [])
-    borrowed_books = df[df['Book_ID'].isin(borrowed_ids)][
-        ['Book_ID','Title','Author','Category','Cabinet','Rack','Row','Status']].to_dict('records')
-    recs = get_user_recommendations(user)
-    return render_template('my_books.html', borrowed_books=borrowed_books, recommendations=recs)
-
-@app.route('/recommendations')
-def recommendations():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    recs = get_user_recommendations(session['user'], n=12)
-    borrowed = borrow_records.get(session['user'], [])
-    return render_template('recommendations.html', recommendations=recs, borrowed=borrowed)
-
-# Admin routes
-@app.route('/admin')
-def admin():
-    if 'user' not in session or session.get('role') != 'admin':
-        flash('Admin access required.', 'error')
-        return redirect(url_for('dashboard'))
-    all_books = df[['Book_ID','Title','Author','Category','Cabinet','Rack','Row','Status']].to_dict('records')
-    all_borrows = {u: borrow_records.get(u,[]) for u in USERS}
-    return render_template('admin.html', books=all_books, borrows=all_borrows, users=USERS)
-
-@app.route('/api/recommendations/<book_id>')
-def api_recs(book_id):
-    return jsonify(get_recommendations(book_id))
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+## Author
+V. Anusha
+B23AI114
+KITSW
