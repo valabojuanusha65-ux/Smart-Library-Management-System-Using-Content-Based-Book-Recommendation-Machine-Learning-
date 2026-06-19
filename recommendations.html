@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Recommendations – Smart Library{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>✨ Personalized Recommendations</h1>
+    <p>Books selected for you using TF-IDF & Cosine Similarity ML algorithms.</p>
+  </div>
+  <div class="book-grid">
+    {% for book in recommendations %}
+    <div class="book-card">
+      <div style="font-size:2.5rem;text-align:center;">
+        {% if book.Category=='Programming' %}💻
+        {% elif book.Category=='Fiction' %}📖
+        {% elif book.Category=='Science' %}🔬
+        {% elif book.Category=='History' %}🏛️
+        {% elif book.Category=='Thriller' %}🔪
+        {% else %}📚{% endif %}
+      </div>
+      <h3>{{ book.Title }}</h3>
+      <div class="author">✍️ {{ book.Author }}</div>
+      <div class="meta">
+        <span class="tag tag-cat">{{ book.Category }}</span>
+        <span class="tag {% if book.Status=='Present' %}tag-present{% elif book.Status=='Checked Out' %}tag-checked{% else %}tag-missing{% endif %}">{{ book.Status }}</span>
+      </div>
+      <a href="{{ url_for('book_detail', book_id=book.Book_ID) }}" class="btn btn-primary btn-sm btn-full">View Details</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card" style="margin-top:2rem;background:linear-gradient(135deg,#e0e7ff,#ddd6fe);border:none;">
+    <div class="section-title" style="color:#1e1b4b;">🤖 How Recommendations Work</div>
+    <p style="color:#374151;line-height:1.7;">Our system uses <strong>TF-IDF (Term Frequency-Inverse Document Frequency)</strong> vectorization to convert book metadata (title, author, category) into numerical vectors. Then <strong>Cosine Similarity</strong> measures how close each book is to your reading history. The more books you borrow, the smarter your recommendations become!</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – Smart Library{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>Welcome back, {{ session.name }}! 👋</h1>
+    <p>Here's what's happening in your library today.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e0e7ff;">📚</div>
+      <div class="stat-info"><h3>{{ total }}</h3><p>Total Books</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#d1fae5;">✅</div>
+      <div class="stat-info"><h3>{{ present }}</h3><p>Available Now</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7;">📤</div>
+      <div class="stat-info"><h3>{{ checked }}</h3><p>Checked Out</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fee2e2;">⚠️</div>
+      <div class="stat-info"><h3>{{ missing }}</h3><p>Missing</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#f0fdf4;">📋</div>
+      <div class="stat-info"><h3>{{ borrowed_count }}</h3><p>You Borrowed</p></div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="section-title">📂 Books by Category</div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+      {% for cat, count in categories.items() %}
+      <a href="{{ url_for('books', category=cat) }}" style="text-decoration:none;">
+        <div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;padding:.75rem 1.25rem;text-align:center;min-width:120px;transition:all .2s;cursor:pointer;" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e2e8f0'">
+          <div style="font-size:1.4rem;margin-bottom:.25rem;">
+            {% if cat=='Programming' %}💻
+            {% elif cat=='Fiction' %}📖
+            {% elif cat=='Science' %}🔬
+            {% elif cat=='History' %}🏛️
+            {% elif cat=='Thriller' %}🔪
+            {% else %}📚{% endif %}
+          </div>
+          <div style="font-weight:700;color:#1e1b4b;font-size:.95rem;">{{ cat }}</div>
+          <div style="color:#64748b;font-size:.8rem;">{{ count }} books</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="card">
+    <div class="section-title">✨ Recommended For You <a href="{{ url_for('recommendations') }}" class="btn btn-outline btn-sm" style="margin-left:auto;">See All</a></div>
+    <div class="book-grid">
+      {% for book in recommendations %}
+      <div class="book-card">
+        <h3>{{ book.Title }}</h3>
+        <div class="author">✍️ {{ book.Author }}</div>
+        <div class="meta">
+          <span class="tag tag-cat">{{ book.Category }}</span>
+          <span class="tag {% if book.Status=='Present' %}tag-present{% elif book.Status=='Checked Out' %}tag-checked{% else %}tag-missing{% endif %}">{{ book.Status }}</span>
+        </div>
+        <a href="{{ url_for('book_detail', book_id=book.Book_ID) }}" class="btn btn-primary btn-sm btn-full">View Details</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

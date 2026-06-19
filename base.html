@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{% block title %}Smart Library{% endblock %}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f8;color:#2d3748;}
+:root{--primary:#4f46e5;--primary-dark:#3730a3;--accent:#06b6d4;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--card:#ffffff;}
+
+/* NAV */
+nav{background:linear-gradient(135deg,#1e1b4b,#312e81);color:#fff;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.nav-brand{font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+.nav-brand span{font-size:1.6rem;}
+.nav-links{display:flex;gap:.25rem;align-items:center;}
+.nav-links a{color:rgba(255,255,255,.8);text-decoration:none;padding:.5rem 1rem;border-radius:8px;transition:all .2s;font-size:.9rem;}
+.nav-links a:hover,.nav-links a.active{background:rgba(255,255,255,.15);color:#fff;}
+.nav-user{display:flex;align-items:center;gap:1rem;font-size:.9rem;}
+.badge{background:var(--accent);color:#fff;border-radius:99px;padding:.15rem .6rem;font-size:.75rem;font-weight:600;}
+
+/* LAYOUT */
+.container{max-width:1280px;margin:0 auto;padding:2rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h1{font-size:1.8rem;font-weight:700;color:#1e1b4b;}
+.page-header p{color:#64748b;margin-top:.25rem;}
+
+/* CARDS */
+.card{background:var(--card);border-radius:12px;box-shadow:0 1px 8px rgba(0,0,0,.08);padding:1.5rem;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--card);border-radius:12px;padding:1.25rem 1.5rem;box-shadow:0 1px 8px rgba(0,0,0,.08);display:flex;align-items:center;gap:1rem;}
+.stat-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+.stat-info h3{font-size:1.6rem;font-weight:700;}
+.stat-info p{font-size:.8rem;color:#64748b;}
+
+/* BOOK GRID */
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;}
+.book-card{background:var(--card);border-radius:12px;padding:1.25rem;box-shadow:0 1px 8px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:.5rem;}
+.book-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12);}
+.book-card h3{font-size:.95rem;font-weight:600;line-height:1.4;color:#1e1b4b;}
+.book-card .author{font-size:.82rem;color:#64748b;}
+.book-card .meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.25rem;}
+.tag{font-size:.72rem;padding:.2rem .6rem;border-radius:99px;font-weight:600;}
+.tag-cat{background:#e0e7ff;color:#3730a3;}
+.tag-present{background:#d1fae5;color:#065f46;}
+.tag-checked{background:#fef3c7;color:#92400e;}
+.tag-missing{background:#fee2e2;color:#991b1b;}
+.book-card .location{font-size:.78rem;color:#94a3b8;margin-top:.25rem;}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;transition:all .2s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-outline:hover{background:var(--primary);color:#fff;}
+.btn-sm{padding:.35rem .8rem;font-size:.78rem;}
+.btn-full{width:100%;justify-content:center;margin-top:.5rem;}
+
+/* FLASH */
+.flash-wrap{max-width:1280px;margin:.75rem auto 0;padding:0 2rem;}
+.flash{padding:.85rem 1.25rem;border-radius:10px;font-size:.9rem;font-weight:500;display:flex;align-items:center;gap:.5rem;}
+.flash-success{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;}
+.flash-error{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
+
+/* SEARCH BAR */
+.search-bar{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.search-bar input,.search-bar select{padding:.6rem 1rem;border:2px solid #e2e8f0;border-radius:8px;font-size:.9rem;outline:none;transition:border .2s;}
+.search-bar input:focus,.search-bar select:focus{border-color:var(--primary);}
+.search-bar input{flex:1;min-width:200px;}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:.88rem;}
+th{background:#f8fafc;padding:.75rem 1rem;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;}
+td{padding:.75rem 1rem;border-bottom:1px solid #f1f5f9;color:#374151;}
+tr:hover td{background:#fafafa;}
+
+/* SECTIONS */
+.section-title{font-size:1.1rem;font-weight:700;color:#1e1b4b;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+</style>
+</head>
+<body>
+{% if session.user %}
+<nav>
+  <div class="nav-brand"><span>📚</span> Smart Library</div>
+  <div class="nav-links">
+    <a href="{{ url_for('dashboard') }}" {% if request.endpoint=='dashboard' %}class="active"{% endif %}>🏠 Dashboard</a>
+    <a href="{{ url_for('books') }}" {% if request.endpoint=='books' %}class="active"{% endif %}>📖 Books</a>
+    <a href="{{ url_for('recommendations') }}" {% if request.endpoint=='recommendations' %}class="active"{% endif %}>✨ For You</a>
+    <a href="{{ url_for('my_books') }}" {% if request.endpoint=='my_books' %}class="active"{% endif %}>📋 My Books</a>
+    {% if session.role=='admin' %}
+    <a href="{{ url_for('admin') }}" {% if request.endpoint=='admin' %}class="active"{% endif %}>⚙️ Admin</a>
+    {% endif %}
+  </div>
+  <div class="nav-user">
+    <span>👤 {{ session.name }} <span class="badge">{{ session.role }}</span></span>
+    <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.5)">Logout</a>
+  </div>
+</nav>
+{% endif %}
+
+<div class="flash-wrap">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+    <div class="flash flash-{{ cat }}">{% if cat=='success' %}✅{% else %}❌{% endif %} {{ msg }}</div>
+  {% endfor %}
+{% endwith %}
+</div>
+
+{% block content %}{% endblock %}
+</body>
+</html>

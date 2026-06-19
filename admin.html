@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Admin – Smart Library{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>⚙️ Admin Panel</h1>
+    <p>Manage all books and user activity.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="section-title">👥 User Borrow Summary</div>
+    <table>
+      <thead><tr><th>User</th><th>Role</th><th>Books Borrowed</th></tr></thead>
+      <tbody>
+        {% for uname, udata in users.items() %}
+        <tr>
+          <td><strong>{{ udata.name }}</strong> ({{ uname }})</td>
+          <td><span class="tag tag-cat">{{ udata.role }}</span></td>
+          <td>{{ borrows[uname]|length }} books</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📚 All Books ({{ books|length }})</div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Location</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for book in books %}
+          <tr>
+            <td style="font-size:.8rem;color:#94a3b8;">{{ book.Book_ID }}</td>
+            <td><strong>{{ book.Title }}</strong></td>
+            <td>{{ book.Author }}</td>
+            <td><span class="tag tag-cat">{{ book.Category }}</span></td>
+            <td style="font-size:.82rem;">C{{ book.Cabinet }}-R{{ book.Rack }}-W{{ book.Row }}</td>
+            <td><span class="tag {% if book.Status=='Present' %}tag-present{% elif book.Status=='Checked Out' %}tag-checked{% else %}tag-missing{% endif %}">{{ book.Status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
